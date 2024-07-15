@@ -109,7 +109,7 @@ classdef Camera3D < glmu.internal.Base
         end
 
         function MouseWheelMoved(obj,evt)
-            s = evt.getUnitsToScroll / 40;
+            s = evt.getUnitsToScroll / 30;
             obj.viewParams.T = obj.viewParams.T .* (1+s);
             obj.MView_need_recalc = 1;
         end
