@@ -4,31 +4,50 @@ classdef JPanel < JComponent
     properties(Constant)
         JClass = 'javax.swing.JPanel'
         isEDT = false
+        FLOW_LAYOUT = java.awt.FlowLayout
+        BORDER_LAYOUT= java.awt.BorderLayout
+        BORDER_LAYOUT_SOUTH = java.awt.BorderLayout.SOUTH
+        BORDER_LAYOUT_NORTH = java.awt.BorderLayout.NORTH
     end
     
     properties
         layout
+        visible
     end
     
     methods
         
         function obj = JPanel(layout)
-            if nargin < 1, layout = 'FlowLayout'; end
+            if nargin < 1, layout = obj.FLOW_LAYOUT; end
             obj.layout = layout;
-            obj.java.setLayout(javaObject(['java.awt.' layout]));
-            obj.java.setVisible(true);
+            obj.setLayout(layout);
+            obj.setVisible(true);
         end
         
-        function set.layout(obj, layout)
-            obj.java.setLayout(javaObject(['java.awt.' layout]));
+        function setLayout(obj, layout)
+            obj.java.setLayout(layout);
         end
         
-        function l = get.layout(obj)
+        function setVisible(obj,visibility)
+            obj.visible=visibility;
+            obj.java.setVisible(visibility);
+        end
+
+        function addButton(obj,button,layout)
+            obj.java.add(button.java,layout);
+        end
+
+        function l = getLayout(obj)
             l = char(obj.java.getLayout.getClass.getSimpleName);
         end
         
         function addComponent(obj, component)
             obj.java.add(component.java);
+        end
+
+        function refresh(obj)
+            obj.java.revalidate();
+            obj.java.repaint();
         end
         
         function delete(obj)
