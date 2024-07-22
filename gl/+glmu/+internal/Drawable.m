@@ -41,5 +41,21 @@ classdef Drawable < glmu.internal.Object
     methods(Abstract)
         DrawFcn(obj,varargin)
     end
+
+    % methods(Static)
+    %     function b = struct2indirect(s)
+    %         if ~isscalar(s)
+    %             b = arrayfun(@glmu.internal.Drawable.struct2indirect,s,'uni',0);
+    %             b = horzcat(b{:});
+    %             return
+    %         end
+    %         u8 = @(x) typecast(x,'uint8');
+    %         b = [u8(uint32(s.count)) ...
+    %              u8(uint32(s.instanceCount)) ...
+    %              u8(uint32(s.firstIndex)) ...
+    %              u8(int32(s.baseVertex)) ...
+    %              u8(uint32(s.baseInstance))];
+    %     end
+    % end
 end
 

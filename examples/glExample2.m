@@ -8,8 +8,8 @@ classdef glExample2 < GLController
     
     methods
         function obj = glExample2()
-            frame = JFrame('HelloTriangle 2',[600 450]);
-            canvas = frame.add(GLCanvas('GL3',0,obj));
+            frame = JFrame('Title','HelloTriangle 2');
+            canvas = GLCanvas(frame,'GL3',0,obj);
             canvas.Init;
         end
         

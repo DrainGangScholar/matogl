@@ -34,13 +34,15 @@ classdef glFractal < glmu.GLController
                 target = 'GL3';
             end
 
-            frame = JFrame('glFractal',obj.sz);
-            canvas = frame.add(GLCanvas(target,0,obj));
+            frame = JFrame('Title','glFractal','Size',obj.sz);
+            canvas = GLCanvas(frame,target,0,obj);
             canvas.Init(doublePrecisionFlag);
 
-            canvas.setCallback('MousePressed',@obj.MousePressed);
-            canvas.setCallback('MouseDragged',@obj.MouseDragged);
-            canvas.setCallback('MouseWheelMoved',@obj.MouseWheelMoved);
+
+            canvas.addJEvents({'MousePressed','MouseDragged','MouseWheelMoved'});
+            addlistener(canvas,'MousePressed',@obj.MousePressed);
+            addlistener(canvas,'MouseDragged',@obj.MouseDragged);
+            addlistener(canvas,'MouseWheelMoved',@obj.MouseWheelMoved);
 
             addlistener(obj,{'cmap','maxIter','fractal','seed'},'PostSet',@obj.PropUpdate);
         end
@@ -78,22 +80,23 @@ classdef glFractal < glmu.GLController
         end
 
         function MousePressed(obj,~,evt)
-            obj.click.xy = [-evt.getX evt.getY];
+            obj.click.xy = jevt2coords(evt,false);%[-evt.getX evt.getY];
             obj.click.z = obj.drawable.uni.offset;
         end
         
         function MouseDragged(obj,~,evt)
-            dxy = [-evt.getX evt.getY] - obj.click.xy;
+
+            dxy = jevt2coords(evt,false) - obj.click.xy;
             s = obj.drawable.uni.scale;
-            dOffset = dxy ./ mean(obj.sz) * 2 * s;
+            dOffset = dxy .*[-1 1] ./ mean(obj.sz) * 2 * s;
             obj.drawable.uni.offset = obj.click.z + dOffset;
             obj.Update;
         end
         
         function MouseWheelMoved(obj,~,evt)
-            z = evt.getUnitsToScroll / 30;
+            z = evt.java.getUnitsToScroll / 30;
             s = obj.drawable.uni.scale;
-            dxy = [evt.getX evt.getY] ./ obj.sz * 2 - 1; % scale to -1:1
+            dxy = jevt2coords(evt,false) ./ obj.sz * 2 - 1; % scale to -1:1
             ratio = obj.sz/mean(obj.sz);
             obj.drawable.uni.scale = (1+z) .* s;
             obj.drawable.uni.offset = obj.drawable.uni.offset + dxy.*[-1 1].* ratio * z * s;

@@ -5,7 +5,7 @@ classdef glNBodySim < glmu.GLController
         attractors
         
         workgroupsize = 32
-        nParticles = 64
+        nParticles = 640
         maxWeight = 100000;
         minWeight = 1000;
         G = 0.1
@@ -16,8 +16,8 @@ classdef glNBodySim < glmu.GLController
     methods
         function obj = glNBodySim()
 
-            frame = JFrame('glNBodySim',[600 450]);
-            canvas = frame.add(GLCanvas('GL3',0,obj));
+            frame = JFrame('Title','glNBodySim');
+            canvas = GLCanvas(frame,'GL3',0,obj);
             obj.t = tic;
             canvas.Init;
 
@@ -43,14 +43,14 @@ classdef glNBodySim < glmu.GLController
             vel = pos.*0;
             a = atan2(pos(:,2),pos(:,1))+pi/2;
             vel(:,1:2) = [cos(a) sin(a)].*10;
-
-            buffer = glmu.Buffer(gl.GL_SHADER_STORAGE_BUFFER,{pos',vel'});
             
-            obj.attractors = glmu.drawable.Array(example_prog('particle'),gl.GL_POINTS,buffer);
+            attrib = glmu.VertexAttrib.FromData({pos',vel'},gl.GL_SHADER_STORAGE_BUFFER,gl.GL_DYNAMIC_DRAW);
+            
+            obj.attractors = glmu.drawable.Array(example_prog('particle'),gl.GL_POINTS,attrib);
             obj.attractors.program.uniforms.maxWeight.Set(obj.maxWeight);
-
-            buffer.BindBase(0,1);
-            buffer.BindBase(1,2);
+            
+            attrib{1}.buffer.BindBase(0);
+            attrib{2}.buffer.BindBase(1);
 
         end
         

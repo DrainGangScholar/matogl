@@ -1,6 +1,6 @@
 classdef glExample3 < glmu.GLController
     % Same as glExample2, but using glmu to simplify objects creation and management
-    % nos using glmu.GLController instead of GLController
+    % now using glmu.GLController instead of GLController
     
     properties
         myVertexArray
@@ -9,8 +9,8 @@ classdef glExample3 < glmu.GLController
     
     methods
         function obj = glExample3()
-            frame = JFrame('HelloTriangle 3',[600 450]);
-            canvas = frame.add(GLCanvas('GL3',0,obj));
+            frame = JFrame('Title','HelloTriangle 3');
+            canvas = GLCanvas(frame,'GL3',0,obj);
             canvas.Init;
         end
         
@@ -21,9 +21,12 @@ classdef glExample3 < glmu.GLController
             vertex = single([-0.8 -0.8 0 ; 0.8 -0.8 0 ; 0 0.9 0]);
             color = single([1 0 0 ; 0 1 0 ; 0 0 1]);
 
-            B = glmu.Buffer(gl.GL_ARRAY_BUFFER,{vertex',color'});
+            B1 = glmu.Buffer(vertex',gl.GL_ARRAY_BUFFER);
+            B2 = glmu.Buffer(color',gl.GL_ARRAY_BUFFER);
 
-            obj.myVertexArray = glmu.ArrayPointer(B);
+            A1 = glmu.VertexAttrib(B1,0,gl.GL_FLOAT,3,3);
+            A2 = glmu.VertexAttrib(B2,0,gl.GL_FLOAT,3,3);
+            obj.myVertexArray = glmu.ArrayPointer({A1 A2});
             
             shaderDir = fullfile(fileparts(mfilename('fullpath')),'shaders');
 

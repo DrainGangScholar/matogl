@@ -41,23 +41,17 @@ classdef Uniform < glmu.internal.Object
                 arrayfun(@(a) a.Valid,value);
                 value = vertcat(value.unit);
             end
-            try
-                if all(obj.lastValue(:) == value(:)), return, end
-            catch
-            end
+            if isequal(value,obj.lastValue), return, end
             obj.InternalSet(value);
             obj.lastValue = value;
         end
     end
     methods(Access=private)
         function InternalSet(obj,value)
-            if isa(value,'javabuffer')
-                n = value.capacity;
-            else
-                n = numel(value);
+            if ~isa(value,'javabuffer')
                 value = javabuffer(obj.convertFcn(value));
             end
-            n = n / obj.elemPerValue;
+            n = value.capacity / obj.elemPerValue;
             obj.state.program.Use(obj.progid);
             obj.setFcn(obj.gl,obj.id,n,obj.transpose{:},value.p);
         end

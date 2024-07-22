@@ -19,10 +19,11 @@ classdef glCompute < glmu.GLController
         function obj = glCompute(shadersPath)
             obj.shadersPath = shadersPath;
 
-            frame = JFrame('glCompute',[300 100]);
-            canvas = frame.add(GLCanvas('GL3',4,obj));
+            frame = JFrame('Title','glCompute','Size',[300 100]);
+            canvas = GLCanvas(frame,'GL3',4,obj);
             canvas.Init;
-            frame.setCallback('WindowClosing',@(~,~)obj.delete)
+            frame.addJEvents('WindowClosing');
+            addlistener(frame,'WindowClosing',@(src,evt) delete(obj));
         end
 
         function InitFcn(obj,gl)
@@ -30,10 +31,10 @@ classdef glCompute < glmu.GLController
             obj.stateString = glmu.drawable.Text('glCompute',20,[0 0 0 1]);%,eye(4),MTrans3D([-150 -100 0]));
             % obj.state = glmu.Text('arial','glCompute',20,[0 0 0 1]);
             N = 8;
-            B = cell(1,N);
-            obj.buffer = glmu.Buffer(gl.GL_SHADER_STORAGE_BUFFER,B);
+            obj.buffer = cell(N,1);
             for i=1:N
-                obj.buffer.BindBase(i-1,i)
+                obj.buffer{i} = glmu.Buffer([],gl.GL_SHADER_STORAGE_BUFFER);
+                obj.buffer{i}.BindBase(i-1);
             end
         end
 
@@ -50,17 +51,17 @@ classdef glCompute < glmu.GLController
             obj.progs.(alias).SetUniforms(s);
         end
 
-        function SetBuffer(obj,B)
+        function SetBuffer(obj,iBuffer,B)
             [gl,temp] = obj.canvas.getContext;
-            obj.buffer.Edit(B,gl.GL_DYNAMIC_DRAW);
+            obj.buffer{iBuffer}.Set(B,gl.GL_DYNAMIC_DRAW);
         end
 
         function GetBuffer(obj,iBuffer,jb)
             [gl,temp] = obj.canvas.getContext;
-            obj.buffer.Bind(iBuffer);
-            b = gl.glMapBuffer(obj.buffer.target,gl.GL_READ_ONLY);
+            obj.buffer{iBuffer}.Bind;
+            b = gl.glMapBuffer(obj.buffer{iBuffer}.target,gl.GL_READ_ONLY);
             jb.p.put(b.(['as' jb.javaType 'Buffer']));
-            gl.glUnmapBuffer(obj.buffer.target);
+            gl.glUnmapBuffer(obj.buffer{iBuffer}.target);
             jb.p.rewind;
         end
 

@@ -29,14 +29,14 @@ function out = myFunction_gl(in)
         thisPath = fileparts(mfilename('fullpath'));
         shadersPath = fullfile(thisPath,'shaders');
         glComp = glCompute(shadersPath);
-        glComp.InitCompute('example_glcompute','myComputeAlias',1024);
+        glComp.InitCompute('example_glcompute','myComputeAlias',128);
         const = struct('const1',1);
         glComp.SetConstants('myComputeAlias',const);
         outbuffer = javabuffer(in);
-        glComp.SetBuffer({[] outbuffer});
+        glComp.SetBuffer(2,outbuffer);
     end
 
-    glComp.SetBuffer({in});
+    glComp.SetBuffer(1,in);
     glComp.Run('myComputeAlias',size(in,2));
     glComp.GetBuffer(2,outbuffer);
     out = outbuffer.array;

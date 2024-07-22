@@ -7,8 +7,7 @@ classdef glExample4 < glmu.GLController
     
     methods
         function obj = glExample4()
-            % can be chained in newer matlab versions:
-            JFrame('HelloTriangle 4').add(GLCanvas('GL3',0,obj)).Init;
+            GLCanvas(JFrame('Title','HelloTriangle 4'),'GL3',0,obj).Init;
         end
         
         function InitFcn(obj,gl)

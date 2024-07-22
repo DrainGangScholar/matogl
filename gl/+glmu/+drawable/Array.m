@@ -3,7 +3,6 @@ classdef Array < glmu.internal.Drawable
     properties
         array
         primitive
-        element
     end
     
     methods
@@ -13,11 +12,11 @@ classdef Array < glmu.internal.Drawable
             obj.array = glmu.ArrayPointer(varargin{:});
         end
 
-        function DrawFcn(obj,offset,count)
-            if nargin < 2, offset = 0; end
-            if nargin < 3, count = obj.array.n; end
+        function DrawFcn(obj,first,count)
+            if nargin < 2, first = 0; end
+            if nargin < 3, count = min(cellfun(@(c) c.nbVertex,obj.array.attrib)); end
             obj.array.Bind;
-            obj.gl.glDrawArrays(obj.primitive,offset,count);
+            obj.gl.glDrawArrays(obj.primitive,first,count);
         end
     end
 end

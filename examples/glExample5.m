@@ -17,14 +17,15 @@ classdef glExample5 < glmu.GLController
     methods
         function obj = glExample5()
 
-            frame = JFrame('Utility Examples',[600 450]);
-            canvas = frame.add(GLCanvas('GL3',4,obj));
+            frame = JFrame('Title','Utility Examples');
+            canvas = GLCanvas(frame,'GL3',4,obj);
             canvas.Init;
             
             % activate callbacks
-            canvas.setCallback('MousePressed',@obj.MousePressed);
-            canvas.setCallback('MouseDragged',@obj.MouseDragged);
-            canvas.setCallback('MouseWheelMoved',@obj.MouseWheelMoved);
+            canvas.addJEvents({'MousePressed','MouseDragged','MouseWheelMoved'});
+            addlistener(canvas,'MousePressed',@obj.MousePressed);
+            addlistener(canvas,'MouseDragged',@obj.MouseDragged);
+            addlistener(canvas,'MouseWheelMoved',@obj.MouseWheelMoved);
         end
         
         function InitFcn(obj,gl)
@@ -115,14 +116,14 @@ classdef glExample5 < glmu.GLController
         
         function MousePressed(obj,~,evt)
             % record the screen coordinates, camera and button when click happened
-            obj.click.ij = [evt.getX evt.getY];
+            obj.click.ij = jevt2coords(evt,true);
             obj.click.cam = obj.cam;
-            obj.click.button = evt.getButton;
+            obj.click.button = evt.java.getButton;
         end
         
         function MouseDragged(obj,~,evt)
             % delta from when the mouse was pressed
-            dij = [evt.getX evt.getY] - obj.click.ij;
+            dij = jevt2coords(evt,true) - obj.click.ij;
             c = obj.click.cam;
             switch obj.click.button
                 case 1
@@ -139,7 +140,7 @@ classdef glExample5 < glmu.GLController
         
         function MouseWheelMoved(obj,~,evt)
             % scroll wheel: zoom
-            z = evt.getUnitsToScroll / 50;
+            z = evt.java.getUnitsToScroll / 50;
             obj.cam(4:6) = obj.cam(4:6)+obj.cam(4:6).*z;
             obj.Update;
         end

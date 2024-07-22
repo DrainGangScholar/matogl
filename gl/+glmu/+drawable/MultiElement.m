@@ -10,7 +10,7 @@ classdef MultiElement < glmu.drawable.Element
 
         function DrawFcn(obj)
             obj.array.Bind;
-            obj.element.Bind;
+            obj.element.buffer.Bind;
             for i=1:size(obj.countoffsets,1)
                 if numel(obj.multi_uni) >= i
                     obj.program.SetUniforms(obj.multi_uni{i});
@@ -19,7 +19,8 @@ classdef MultiElement < glmu.drawable.Element
                     obj.idUni.Set(i-1);
                 end
                 co = obj.countoffsets(i,:);
-                obj.gl.glDrawElements(obj.primitive,co(1),obj.element.type,co(2)*4);
+                % obj.gl.glDrawElements(obj.primitive,co(1),obj.element.type,co(2)*obj.element.bytePerVertex);
+                obj.gl.glDrawElements(obj.primitive,co(1),obj.element.type,co(2)+obj.element.offset);
             end
         end
 

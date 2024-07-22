@@ -60,11 +60,11 @@ classdef Camera3D < glmu.internal.Base
             obj.click.view = obj.viewParams;
             obj.click.proj = obj.projParams;
             obj.click.coords = getEvtXY(evt);
-            obj.click.button(evt.getButton) = 1;
+            obj.click.button(evt.java.getButton) = 1;
         end
 
         function MouseReleased(obj,evt)
-            obj.click.button(evt.getButton) = 0;
+            obj.click.button(evt.java.getButton) = 0;
         end
 
         function dxy = GetDxy(obj,evt)
@@ -74,8 +74,8 @@ classdef Camera3D < glmu.internal.Base
         function MouseDragged(obj,evt)
             if ~any(obj.click.button), return, end
             dxy = obj.GetDxy(evt);
-            mod = evt.getModifiers;
-            ctrlPressed = bitand(mod,evt.CTRL_MASK);
+            mod = evt.java.getModifiers;
+            ctrlPressed = bitand(mod,evt.java.CTRL_MASK);
 
             if obj.click.button(1)
                 obj.viewParams.R([3 1]) = obj.click.view.R([3 1])+dxy*0.2;
@@ -109,7 +109,7 @@ classdef Camera3D < glmu.internal.Base
         end
 
         function MouseWheelMoved(obj,evt)
-            s = evt.getUnitsToScroll / 30;
+            s = evt.java.getUnitsToScroll / 30;
             obj.viewParams.T = obj.viewParams.T .* (1+s);
             obj.MView_need_recalc = 1;
         end
@@ -127,6 +127,6 @@ classdef Camera3D < glmu.internal.Base
 end
 
 function xy = getEvtXY(evt)
-    xy = [evt.getX evt.getY]';
+    xy = jevt2coords(evt,false)';
 end
 

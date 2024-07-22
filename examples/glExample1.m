@@ -1,14 +1,10 @@
 classdef glExample1 < GLController
     % Some "Hello World!" OpenGL example using fixed function pipeline
     
-    properties
-        
-    end
-    
     methods
         function obj = glExample1()
-            frame = JFrame('HelloTriangle 1',[600 450]);
-            canvas = frame.add(GLCanvas('GL2',0,obj));
+            frame = JFrame('Title','HelloTriangle 1');
+            canvas = GLCanvas(frame,'GL2',0,obj);
             canvas.Init;
         end
         

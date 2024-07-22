@@ -1,54 +1,46 @@
 classdef ArrayPointer < glmu.Array
     
     properties
-        buffer
-        norm
-        n = 0
+        attrib
+        iattrib
     end
     
     methods
-        function obj = ArrayPointer(varargin)
+        function obj = ArrayPointer(vattribs,varargin)
             % optional buffer = glmu.Buffer | buffer data
             % optional normalized = normalize flags for each
-            if nargin > 0 && isa(varargin{1},'glmu.ArrayPointer'), obj = varargin{1}; return, end
-            obj.Edit(varargin{:});
+            if ~nargin, return, end
+            if isa(vattribs,'glmu.ArrayPointer'), obj = vattribs; return, end
+            if ~iscell(vattribs), vattribs = {vattribs}; end
+
+            tf = ~cellfun(@(x) isa(x,'glmu.VertexAttrib'),vattribs);
+            vattribs(tf) = glmu.VertexAttrib.FromData(vattribs(tf));
+            obj.Set(vattribs,varargin{:});
         end
 
-        function Edit(obj,buffer,normalized,attrib)
-            % buffer = glmu.Buffer | buffer data
-            % optional normalized = normalize flags for each, default false
-            if nargin < 2, return, end
-            if nargin < 3, normalized = false; end
-            if nargin < 4, attrib = ''; end
-            if ~iscell(attrib), attrib = {attrib}; end
-            if ~isa(buffer,'glmu.Buffer')
-                buffer = glmu.Buffer(obj.gl.GL_ARRAY_BUFFER,buffer);
-            end
-            nb = numel(buffer.id);
-            if nb > 1 && isscalar(attrib), attrib = repmat(attrib,nb,1); end
-            obj.norm = obj.Const(normalized,nb);
+        function Set(obj,vattribs,iattribs)
+            if nargin < 3, iattribs = 0:numel(vattribs)-1; end
             obj.Bind;
-            for i=1:nb
-                buffer.Bind(i,obj.gl.GL_ARRAY_BUFFER);
-                sz = buffer.sz(i,1);
-                type = buffer.type(i);
-                args = {i-1, sz, type};
-                if isempty(attrib{i})
-                    obj.gl.glVertexAttribPointer(args{:},obj.norm(i),0,0);
-                else
-                    f = str2func(['glVertexAttrib' attrib{i} 'Pointer']);
-                    f(obj.gl,args{:},0,0);
+            for i=1:numel(vattribs)
+                va = vattribs{i};
+                a = iattribs(i);
+                va.buffer.Bind(obj.gl.GL_ARRAY_BUFFER);
+                switch va.glslType
+                    case 'float'
+                        obj.gl.glVertexAttribPointer(a,va.nbDims,va.type,obj.gl.GL_FALSE,0,va.offset);
+                    case 'normalized'
+                        obj.gl.glVertexAttribPointer(a,va.nbDims,va.type,obj.gl.GL_TRUE,0,va.offset);
+                    case 'integer'
+                        obj.gl.glVertexAttribIPointer(a,va.nbDims,va.type,0,va.offset);
+                    case 'double'
+                        obj.gl.glVertexAttribLPointer(a,va.nbDims,va.type,0,va.offset);
+                    otherwise
+                        error('invalid glslType')
                 end
-                
-                obj.gl.glEnableVertexAttribArray(i-1)
+                obj.gl.glEnableVertexAttribArray(a);
             end
-            obj.n = min(buffer.sz(:,2));
-            obj.buffer = buffer;
-        end
-
-        function EditBuffer(obj,args)
-            obj.buffer.Edit(args);
-            obj.n = min(obj.buffer.sz(:,2));
+            obj.attrib = vattribs;
+            obj.iattrib = iattribs;
         end
 
     end

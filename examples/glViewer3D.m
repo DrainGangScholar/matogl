@@ -83,14 +83,16 @@ classdef glViewer3D < glmu.GLController
             pos = single(double(pos) - double(obj.pos0));
             
 
-            frame = JFrame('glViewer3D',[600 450]);
-            canvas = frame.add(GLCanvas('GL3',0,obj));
+            frame = JFrame('Title','glViewer3D');
+            canvas = GLCanvas(frame,'GL3',0,obj);
             canvas.Init(pos,col,p.Results.idx,p.Results.edl);
             
-            canvas.setCallback('MousePressed',@obj.MousePressed);
-            canvas.setCallback('MouseReleased',@obj.MouseReleased);
-            canvas.setCallback('MouseDragged',@obj.MouseDragged);
-            canvas.setCallback('MouseWheelMoved',@obj.MouseWheelMoved);
+
+            canvas.addJEvents({'MousePressed','MouseDragged','MouseWheelMoved','MouseReleased'});
+            addlistener(canvas,'MousePressed',@obj.MousePressed);
+            addlistener(canvas,'MouseDragged',@obj.MouseDragged);
+            addlistener(canvas,'MouseWheelMoved',@obj.MouseWheelMoved);
+            addlistener(canvas,'MouseReleased',@obj.MouseReleased);
         end
         
         function InitFcn(obj,gl,pos,col,idx,edl)
@@ -98,13 +100,13 @@ classdef glViewer3D < glmu.GLController
             obj.ptcloudProgram = example_prog('pointcloud');
             u = obj.ptcloudProgram.uniforms;
             obj.cam = glmu.Camera3D(u.projection,u.view);
-            buf = {pos',col'};
-            norm = [false true];
+
+            attrib = glmu.VertexAttrib.FromData({pos',col'},gl.GL_ARRAY_BUFFER,gl.GL_STATIC_DRAW,{'float','normalized'});
 
             if isempty(idx)
-                obj.points = glmu.drawable.Array(obj.ptcloudProgram,gl.GL_POINTS,buf,norm);
+                obj.points = glmu.drawable.Array(obj.ptcloudProgram,gl.GL_POINTS,attrib);
             else
-                obj.points = glmu.drawable.Element(obj.ptcloudProgram,gl.GL_TRIANGLES,idx',buf,norm);
+                obj.points = glmu.drawable.Element(obj.ptcloudProgram,gl.GL_TRIANGLES,idx',attrib);
             end
 
             obj.points.uni.model = eye(4);
@@ -181,7 +183,7 @@ classdef glViewer3D < glmu.GLController
             c = getEvtXY(evt);
             p = obj.glGetPoint(c);
 
-            if bitand(evt.CTRL_MASK,evt.getModifiers) && ~isempty(p) % ctrl pressed
+            if bitand(evt.java.CTRL_MASK,evt.java.getModifiers) && ~isempty(p) % ctrl pressed
                 fprintf('Point coords: %.3f, %.3f, %.3f\n',double(p)+obj.pos0');
             end
             obj.edl0 = obj.screen.program.uniforms.edlStrength.lastValue;
@@ -285,7 +287,7 @@ classdef glViewer3D < glmu.GLController
         end
         
         function MouseDragged(obj,~,evt)
-            if obj.cam.click.button(3) && bitand(evt.getModifiers,evt.CTRL_MASK)
+            if obj.cam.click.button(3) && bitand(evt.java.getModifiers,evt.java.CTRL_MASK)
                 % ctrl + right click
                 dxy = obj.cam.GetDxy(evt);
                 s = 2^(dxy(2)./100);
@@ -329,6 +331,6 @@ function c = PreprocColor(c,n)
 end
 
 function xy = getEvtXY(evt)
-    xy = [evt.getX evt.getY]';
+    xy = jevt2coords(evt,false)';
 end
 

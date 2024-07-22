@@ -1,5 +1,5 @@
 classdef GLCanvas < JComponent
-    
+
     properties(Constant)
         isEDT = false
         JClass = 'com.jogamp.opengl.awt.GLCanvas'
@@ -24,23 +24,39 @@ classdef GLCanvas < JComponent
     properties(Access=private)
         context
     end
-    
-    methods
-        function obj = GLCanvas(glProfile,nbSamples,controller)
-            if nargin < 2, nbSamples = 0; end
 
-            gp = com.jogamp.opengl.GLProfile.get(glProfile);
+    methods
+        % function obj = GLCanvas(glProfile,nbSamples,controller)
+        function obj = GLCanvas(varargin)
+            [parent,varargin] = jparse(varargin{:});
+
+            p = inputParser;
+            p.addRequired('glProfile',@mustBeTextScalar);
+            p.addOptional('nbSamples',0);
+            p.addOptional('controller',[]);
+            p.KeepUnmatched = true;
+            p.parse(varargin{:});
+
+            gp = com.jogamp.opengl.GLProfile.get(p.Results.glProfile);
             cap = com.jogamp.opengl.GLCapabilities(gp);
+            nbSamples = p.Results.nbSamples;
             if nbSamples > 1
                 cap.setSampleBuffers(1);
                 cap.setNumSamples(nbSamples);
             end
             obj@JComponent(cap);
             obj.java.setAutoSwapBufferMode(false);
-            obj.setMethodCallback('ComponentResized');
-            if nargin >= 3
+            obj.addJEvents('ComponentResized');
+            addlistener(obj,'ComponentResized',@obj.CanvasResized);
+
+            controller = p.Results.controller;
+            if ~isempty(controller)
                 controller.setGLCanvas(obj)
             end
+
+            parent.add(obj);
+
+            set(obj,p.Unmatched)
         end
 
         function Init(obj,varargin)
@@ -50,7 +66,7 @@ classdef GLCanvas < JComponent
             obj.java.display;
             obj.context = obj.java.getContext;
             [gl,temp] = obj.getContext;
-            
+
             obj.InitFcn(gl,varargin{:});
             obj.isInit = 1;
             obj.Update;
@@ -65,10 +81,10 @@ classdef GLCanvas < JComponent
             end
             temp = onCleanup(@() obj.releaseContext);
             obj.contextLocks = obj.contextLocks+1;
-            
+
             gl = obj.context.getCurrentGL;
         end
-        
+
         function releaseContext(obj)
             if ~isvalid(obj), return, end
             obj.contextLocks = obj.contextLocks - 1;
@@ -106,19 +122,26 @@ classdef GLCanvas < JComponent
             end
             obj.updating = 1; temp1 = onCleanup(@() obj.EndUpdate);
             [gl,temp2] = getContext(obj); %#ok<ASGLU> temp2 is onCleanup()
+            j = 0;
             while obj.updateNeeded
 %                 obj.state.CleanUp;
                 if obj.resizeNeeded
                     obj.resizeNeeded = 0;
-                    obj.ResizeFcn(gl,obj.size);
+                    obj.ResizeFcn(gl,obj.Size);
                 end
                 obj.updateNeeded = 0;
                 obj.UpdateFcn(gl);
                 if obj.autoSwapBuffer
                     obj.context.getGLDrawable.swapBuffers;
                 end
-                obj.glDrawnow;
-%                 pause(0.01);
+
+                if j < 1
+                    drawnow
+                end
+                j=j+1;
+                % j
+                % obj.glDrawnow;
+                % pause(0.001);
                 if obj.glStop, return, end
             end
             if obj.autoCheckError, obj.CheckError(gl); end
@@ -129,13 +152,13 @@ classdef GLCanvas < JComponent
             obj.updating = 0;
         end
 
-        function ComponentResized(obj,~,~)
+        function CanvasResized(obj,~,~)
             obj.resizeNeeded = 1;
             obj.Update;
         end
 
         function delete(obj)
-            if obj.context.isCurrent
+            if ~isempty(obj.context) && obj.context.isCurrent
                 obj.context.release;
             end
             obj.UpdateFcn = @(gl) [];
