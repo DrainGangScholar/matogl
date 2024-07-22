@@ -1,7 +1,11 @@
-classdef JObj < handle
+classdef JObj < handle & matlab.mixin.SetGet
+    
+    properties(SetAccess = protected)
+        java
+    end
     
     properties
-        java
+        UserData
     end
 
     properties(Constant,Abstract)
@@ -21,6 +25,10 @@ classdef JObj < handle
         function v = const(obj,v)
             if isnumeric(v), return, end
             v = obj.java.(upper(v));
+        end
+
+        function delete(obj)
+            obj.UserData = [];
         end
     end
 end

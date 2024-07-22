@@ -16,60 +16,76 @@ classdef javacallbackmanager < handle
 %   remove a previously defined callback
 %   if no argument, remove every callbacks
 
-    properties(Hidden)
-        callback_list
+    properties(SetAccess=protected,Abstract)
+        java
+    end
+
+    properties(SetAccess=protected)
+        JEvents_list
+    end
+
+    properties(Dependent)
+        JEvents
     end
     
     properties(Access=private)
-        h
+        jcbhandle
+        iJEvents = {}
     end
     
-    methods(Sealed=true)
+    methods
         
-        function obj = javacallbackmanager(javaObj)
-            if nargin < 1, return, end
-            obj.populateCallbacks(javaObj);
-        end
-        
-        function populateCallbacks(obj,javaObj)
-            obj.h = javaObj.handle('CallbackProperties');
-            fn = fieldnames(obj.h);
+        function obj = javacallbackmanager()
+            obj.jcbhandle = obj.java.handle('CallbackProperties');
+            fn = fieldnames(obj.jcbhandle);
             fn = fn(endsWith(fn,'CallbackData'));
-            obj.callback_list = extractBefore(fn,'CallbackData');
+            obj.JEvents_list = extractBefore(fn,'CallbackData');
         end
-        
-        function tf = isValidCallback(obj,target,errorFlag)
-            assert(ischar(target));
-            tf = ismember(target,obj.callback_list);
-            if ~tf && errorFlag
-                error(['invalid callback: ' target]);
+
+        function set.JEvents(obj,evts)
+            evts = cellstr(evts);
+            evts = unique(evts(:),'stable');
+            tf = ismember(evts,obj.JEvents_list);
+            if ~all(tf)
+                error('Java callback not found: %s',strjoin(evts(~tf),', '));
             end
-        end
-        
-        function setCallback(obj,target,fcn)
-            obj.isValidCallback(target,1);
-            obj.h.([target 'Callback']) = fcn;
-        end
-        
-        function setMethodCallback(obj,target)
-            obj.isValidCallback(target,1);
-            obj.h.([target 'Callback']) = @(src,evt) obj.(target)(src,evt);
-        end
-        
-        function rmCallback(obj,target)
-            if nargin > 1
-                obj.isValidCallback(target,1);
-                obj.h.([target 'Callback']) = [];
-            else
-                for i=1:numel(obj.callback_list)
-                    obj.h.([obj.callback_list{i} 'Callback']) = [];
-                end
+
+            tf = ismember(evts,events(obj));
+            if ~all(tf)
+                error('Event not found: %s',strjoin(evts(~tf),', '));
+            end
+
+            obj.rmJEvents;
+            obj.iJEvents = evts;
+            for i=1:numel(evts)
+                obj.jcbhandle.([evts{i} 'Callback']) = @(src,evt) notify(obj,evts{i},javaevent(evt));
             end
         end
 
-        function callback = getCallback(obj,target)
-            obj.isValidCallback(target,1);
-            callback = obj.h.([target 'Callback']);
+        function evts = get.JEvents(obj)
+            evts = obj.iJEvents;
+        end
+
+        function addJEvents(obj,evts)
+            evts = cellstr(evts);
+            obj.JEvents = [obj.iJEvents ; evts(:)];
+        end
+
+        function rmJEvents(obj,evts)
+            if nargin < 2
+                evts = obj.iJEvents;
+            end
+            evts = cellstr(evts);
+            [tf,k] = ismember(evts,obj.iJEvents);
+            evts = evts(tf);
+            for i=1:numel(evts)
+                obj.jcbhandle.([evts{i} 'Callback']) = [];
+            end
+            obj.iJEvents(k(tf)) = [];
+        end
+
+        function delete(obj)
+            obj.rmJEvents;
         end
         
     end

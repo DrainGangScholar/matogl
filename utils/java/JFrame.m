@@ -7,35 +7,57 @@ classdef JFrame < JComponent
     end
 
     properties
-        title
+        Title char
+        JMenuBar
+    end
+
+    events
+        WindowClosing
     end
     
     methods
         
-        function obj = JFrame(title,sz)
-            if nargin < 1, title = 'JFrame'; end
-            if nargin < 2, sz = [600 450]; end
-            sz = double(sz);
-            obj.title = title;
-            obj.size = sz;
-%             obj.java.setUndecorated(1);
+        function obj = JFrame(varargin)
             obj.java.setDefaultCloseOperation(obj.java.HIDE_ON_CLOSE); % will be disposed by the delete fcn
+            obj.addJEvents('WindowClosing');
+            addlistener(obj,'WindowClosing',@(~,~) obj.delete);
+
+            p = inputParser;
+            p.addParameter('Title','JFrame',@(~) true);
+            p.addParameter('Size',[600 450]);
+            p.KeepUnmatched = true;
+            p.parse(varargin{:});
+
+            obj.Title = p.Results.Title;
+            obj.Size = p.Results.Size;
             obj.java.setLocationRelativeTo([]); % set position to center of screen
+            set(obj,p.Unmatched);
+
             obj.java.setVisible(true);
-            
-            obj.setCallback('WindowClosing',@(~,~) obj.delete);
         end
 
-        function set.title(obj,t)
+        function set.Title(obj,t)
             obj.java.setTitle(t);
         end
 
-        function t = get.title(obj)
+        function t = get.Title(obj)
             t = char(obj.java.getTitle);
+        end
+
+        function set.JMenuBar(obj,comp)
+            if isempty(comp)
+                jcomp = [];
+            else
+                jcomp = comp.java;
+            end
+            obj.java.setJMenuBar(jcomp);
+            obj.JMenuBar = comp;
+            obj.refresh;
         end
 
         function delete(obj)
             obj.java.dispose;
+            delete(obj.JMenuBar);
         end
         
     end

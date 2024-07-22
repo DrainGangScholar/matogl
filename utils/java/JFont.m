@@ -1,62 +1,55 @@
-classdef JFont < JObj
-    
+classdef JFont
+
     properties
-        constructor = @getFont
-        parent
-    end
-
-    properties(Transient)
-        family
-        style
-        size
-    end
-
-    properties(Constant)
-        PLAIN = java.awt.Font.PLAIN
-        BOLD = java.awt.Font.BOLD
-        ITALIC = java.awt.Font.ITALIC
+        Family
+        Style
+        Size
     end
     
     methods
-        function obj = JFont(parent)
-            obj@JObj(parent);
-            obj.parent = parent;
+        function obj = JFont(arg1,arg2,arg3)
+            if isjava(arg1)
+                obj.Family = char(arg1.getFamily);
+                obj.Size = arg1.getSize;
+                obj.Style = obj.style2str(arg1.getStyle);
+            else
+                if nargin < 1, arg1 = 'Arial'; end
+                if nargin < 2, arg2 = 12; end
+                if nargin < 3, arg3 = 'Plain'; end
+                obj.Family = arg1;
+                obj.Size = arg2;
+                obj.Style = arg3;
+            end
         end
 
-        function f = get.family(obj)
-            f = char(obj.java.getFamily);
-        end
-
-        function set.family(obj,f)
-            obj.parent.setFont(JFont.new(f,obj.style,obj.size));
-        end
-
-        function sz = get.size(obj)
-            sz = obj.java.getSize;
-        end
-
-        function set.size(obj,sz)
-            obj.parent.setFont(JFont.new(obj.family,obj.style,sz));
-        end
-
-        function s = get.style(obj)
-            s = obj.java.getStyle;
-        end
-
-        function set.style(obj,s)
-            obj.parent.setFont(JFont.new(obj.family,s,obj.size));
+        function j = java(obj)
+            j = java.awt.Font(obj.Family,obj.str2style(obj.Style),obj.Size);
         end
 
     end
 
     methods(Static)
-        function f = AvilableFonts()
+        function f = AvailableFonts()
             f = arrayfun(@char,java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames,'uni',0);
         end
 
-        function F = new(family,style,size)
-            F = java.awt.Font(family,style,size);
+        function str = style2str(v)
+            if ischar(v), str = v; return, end
+            switch v
+                case java.awt.Font.PLAIN
+                    str = 'Plain';
+                case java.awt.Font.BOLD
+                    str = 'Bold';
+                case java.awt.Font.ITALIC
+                    str = 'Italic';
+            end
         end
+
+        function v = str2style(str)
+            if isempty(str), str = 'Plain'; end
+            v = java.awt.Font.(upper(str));
+        end
+
     end
 end
 

@@ -7,11 +7,12 @@ classdef javabuffer < handle
         javaType
         matType
         bytePerValue
+        nbytes
     end
     
     methods
         function obj = javabuffer(data,matType)
-            if nargin == 0, return, end
+            if ~nargin, return, end
             if isa(data,'javabuffer'), obj = data; return, end
             if nargin < 2 || isempty(matType)
                 matType = class(data);
@@ -23,11 +24,15 @@ classdef javabuffer < handle
             obj.sz = size(data);
             i = obj.sz > 0;
             obj.capacity = prod(obj.sz(i));
-            obj.p = java.nio.([obj.javaType 'Buffer']).allocate(obj.capacity);
+            obj.sz(~i) = 1;
+
             if all(i)
-                obj.p.put(data(:));
-                obj.p.rewind;
+                obj.p = java.nio.([obj.javaType 'Buffer']).wrap(data(:));
+            else
+                obj.p = java.nio.([obj.javaType 'Buffer']).allocate(obj.capacity);
             end
+
+            obj.nbytes = obj.capacity * obj.bytePerValue;
         end
 
         function data = array(obj,varargin)
