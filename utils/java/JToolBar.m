@@ -21,5 +21,8 @@ classdef JToolBar < JComponent
             disp(['Type of toAdd: ', class(toAdd)]);
             obj.java.add(toAdd.java);
         end
+        function addSeparator(obj)
+            obj.java.addSeparator();
+        end
     end
 end
