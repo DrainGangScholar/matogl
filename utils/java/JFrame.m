@@ -10,6 +10,7 @@ classdef JFrame < JComponent
 
     properties
         title
+        layout
     end
     
     methods
@@ -28,15 +29,15 @@ classdef JFrame < JComponent
             obj.setCallback('WindowClosing',@(~,~) obj.delete);
         end
         
-        function setLayout(obj,layout)
+        function set.layout(obj,layout)
             obj.java.setLayout(layout);
         end
 
-        function setTitle(obj,t)
+        function set.title(obj,t)
             obj.java.setTitle(t);
         end
 
-        function t = getTitle(obj)
+        function t = get.title(obj)
             t = char(obj.java.getTitle);
         end
 

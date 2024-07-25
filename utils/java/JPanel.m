@@ -20,24 +20,24 @@ classdef JPanel < JComponent
         function obj = JPanel(layout)
             if nargin < 1, layout = obj.FLOW_LAYOUT; end
             obj.layout = layout;
-            obj.setLayout(layout);
-            obj.setVisible(true);
+            obj.visible = true;
         end
         
-        function setLayout(obj, layout)
+        function set.layout(obj, layout)
+            obj.layout=layout;
             obj.java.setLayout(layout);
         end
         
-        function setVisible(obj,visibility)
-            obj.visible=visibility;
-            obj.java.setVisible(visibility);
+        function set.visible(obj,visible)
+            obj.visible=visible;
+            obj.java.setVisible(visible);
         end
 
         function addButton(obj,button,layout)
             obj.java.add(button.java,layout);
         end
 
-        function l = getLayout(obj)
+        function l = get.layout(obj)
             l = char(obj.java.getLayout.getClass.getSimpleName);
         end
         
