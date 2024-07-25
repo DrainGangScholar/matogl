@@ -1,5 +1,8 @@
 classdef JComponent < JObj & JChildParent & javacallbackmanager
-
+    properties(Constant)
+        LEFT_ALIGNMENT = 0
+        RIGHT_ALIGNMENT = 1
+    end
     properties
         name
         size

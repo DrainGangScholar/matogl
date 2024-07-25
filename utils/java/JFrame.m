@@ -4,10 +4,13 @@ classdef JFrame < JComponent
     properties(Constant)
         JClass = 'javax.swing.JFrame'
         isEDT = false
+        FLOW_LAYOUT = java.awt.FlowLayout();
+        BORDER_LAYOUT= java.awt.BorderLayout();
     end
 
     properties
         title
+        layout
     end
     
     methods
@@ -24,6 +27,10 @@ classdef JFrame < JComponent
             obj.java.setVisible(true);
             
             obj.setCallback('WindowClosing',@(~,~) obj.delete);
+        end
+        
+        function set.layout(obj,layout)
+            obj.java.setLayout(layout);
         end
 
         function set.title(obj,t)
