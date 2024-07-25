@@ -12,7 +12,7 @@ classdef JToolBar < JComponent
     methods
         function obj = JToolBar(orientation);
             if nargin == 0
-                obj.setOrientation(obj.HORIZONTAL);
+                obj.orientation=obj.HORIZONTAL;
             end
             if nargin == 1
                 obj.orientation=orientation;
